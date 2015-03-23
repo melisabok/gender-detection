@@ -37,10 +37,13 @@ class GenderName:
             print screen_name + ': Female ' + female
     
         if(isMale and isFemale):
-            return u'UNKNOWN'
-        if(isMale):
+            if (len(female) > len(male)):
+                return u'Female'
+            else:
+                return u'UNKNOWN'
+        elif(isMale):
             return 'Male'
-        if(isFemale):
+        elif(isFemale):
             return 'Female'
         return u'UNKNOWN'
 

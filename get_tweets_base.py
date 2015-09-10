@@ -8,6 +8,7 @@ gender_name = GenderName()
 gender_slots = GenderSlots()
 db = pymongo.MongoClient().twitts
 dbTweets = pymongo.MongoClient().tweets
+dbTweets = pymongo.MongoClient().tweets
 for tweet in db.othertwits.find():
     id = tweet['_id']
     tweet_id = tweet['id']
@@ -17,12 +18,10 @@ for tweet in db.othertwits.find():
     name = tweet['actor']['displayName']
     description = tweet['actor']['summary']
 
-    print "screen_name: " + screen_name
     screen_name_gender = gender_name.get_gender_screen_name(screen_name)
     description_gender = 'UNKNOWN'
 
     if description is not None:
-        #print "description: " + description
         description_gender = gender_slots.get_gender(description)
 
     tweet_with_gender = {'_id': id, 'id': tweet_id, 'user_id': user_id, 'text': text, 'screen_name': screen_name, 'name': name, 'description': description, \
@@ -32,6 +31,11 @@ for tweet in db.othertwits.find():
         try:
             #print "insert tweet!"
             dbTweets.tweets_base_gender.save(tweet_with_gender)
+
+            if(screen_name_gender == 'Female'):
+                dbTweets.tweets_female.save(tweet_with_gender)
+            if(screen_name_gender == 'Male'):
+                dbTweets.tweets_male.save(tweet_with_gender)
         except Exception as e:
             print "There was an error inserting the tweet: " + str(e)
 

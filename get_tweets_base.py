@@ -9,6 +9,7 @@ gender_slots = GenderSlots()
 db = pymongo.MongoClient().twitts
 dbTweets = pymongo.MongoClient().tweets
 for tweet in db.othertwits.find():
+    id = tweet['_id']
     tweet_id = tweet['id']
     text = tweet['body']
     user_id = tweet['actor']['id']
@@ -16,7 +17,7 @@ for tweet in db.othertwits.find():
     name = tweet['actor']['displayName']
     description = tweet['actor']['summary']
 
-    #print "screen_name: " + screen_name
+    print "screen_name: " + screen_name
     screen_name_gender = gender_name.get_gender_screen_name(screen_name)
     description_gender = 'UNKNOWN'
 
@@ -24,10 +25,13 @@ for tweet in db.othertwits.find():
         #print "description: " + description
         description_gender = gender_slots.get_gender(description)
 
-    tweet_with_gender = {'id': tweet_id, 'user_id': user_id, 'text': text, 'screen_name': screen_name, 'name': name, 'description': description, \
+    tweet_with_gender = {'_id': id, 'id': tweet_id, 'user_id': user_id, 'text': text, 'screen_name': screen_name, 'name': name, 'description': description, \
     'screen_name_gender': screen_name_gender, 'description_gender': description_gender}
     
     if((screen_name_gender != 'UNKNOWN') or (description_gender != 'UNKNOWN')):
-        #print "insert tweet!"
-        dbTweets.tweets_base_gender.insert(tweet_with_gender)
+        try:
+            #print "insert tweet!"
+            dbTweets.tweets_base_gender.save(tweet_with_gender)
+        except Exception as e:
+            print "There was an error inserting the tweet: " + str(e)
 

@@ -30,11 +30,11 @@ class GenderName:
         male = self.findMaleName(screen_name)
         if male and len(male) >= 5:
             isMale = True
-            print screen_name + ': Male ' + male
+            #print screen_name + ': Male ' + male
         female = self.findFemaleName(screen_name)
         if female and len(female) >= 5:
             isFemale = True
-            print screen_name + ': Female ' + female
+            #print screen_name + ': Female ' + female
     
         if(isMale and isFemale):
             if (len(female) > len(male)):

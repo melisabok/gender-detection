@@ -78,6 +78,11 @@ class SlotStructure(object):
             return True
         return False
 
+    def llena_por_calificativo(self):
+        if (self.calificativo != u''):
+            return True
+        return False
+
     def fill_slots(self):
 
         def in_tokens(a_list, tokens):
@@ -121,13 +126,17 @@ class SlotStructure(object):
             self.calificativo   = c
             self.verbo_i        = vi
             self.calificativo_i = ci
+        elif (ci != -1):
+            self.calificativo   = c
+            self.calificativo_i = ci
+
         
     def calculate_gender(self):
         if self.nosotras != u'':
             self.gender = "Female"
             return
         if self.llena_por_verbo():
-            print 'llena por verbo: ' + self.calificativo
+            #print 'llena por verbo: ' + self.calificativo
             if (self.calificativo in self.gendered_words.adjetivos_femeninos) or (self.calificativo in self.gendered_words.sustantivos_femeninos):
                 self.gender = "Female"
                 return
@@ -135,13 +144,21 @@ class SlotStructure(object):
                 self.gender = "Male"
                 return
         if self.llena_por_conyuge():
-            print 'llena por conyuge: ' + self.conyuge
+            #print 'llena por conyuge: ' + self.conyuge
             if (self.conyuge in self.gendered_words.vinculos_femeninos):
                 self.gender = "Male"
                 return
             elif (self.conyuge in self.gendered_words.vinculos_masculinos):
                 self.gender = "Female"
                 return
+        #if self.llena_por_calificativo():
+        #    print 'llena por calificativo: ' + self.calificativo
+        #    if (self.calificativo in self.gendered_words.adjetivos_femeninos) or (self.calificativo in self.gendered_words.sustantivos_femeninos):
+        #        self.gender = "Female"
+        #        return
+        #    elif (self.calificativo in self.gendered_words.adjetivos_masculinos) or (self.calificativo in self.gendered_words.sustantivos_masculinos):
+        #        self.gender = "Male"
+        #        return
         else:
             self.gender = "UNKNOWN"
 
@@ -183,7 +200,6 @@ class GenderSlots:
             s = SlotStructure(sentence, self.gendered_words)
             s.fill_slots()
             s.calculate_gender()
-            print s
             if s.gender != u'UNKNOWN':
                 return s.gender
         return u'UNKNOWN'

@@ -14,6 +14,7 @@ class TweetsProcessor:
         self.dbTweets = pymongo.MongoClient().tweets
         self.parser = ttp.Parser()
         self.uniques = set()
+        self.filter_regex = re.compile(r'.*(follow|siguen de vuelta en Twitter|una nueva foto en Facebook|He publicado|Acabo de publicar una foto).*', re.UNICODE)
         
 
     def get_gender(self, tweet_with_gender):
@@ -48,7 +49,11 @@ class TweetsProcessor:
         if first50 not in self.uniques:
             self.uniques.add(first50)
 
-            return True   
+            if not self.filter_regex.match(text): 
+                return True
+            else:
+                return False
+
         else:
             return False
 
@@ -71,9 +76,10 @@ class TweetsProcessor:
 
             if self.is_text_valid(text):
                 tweet_text = {"_id": id, "text": text, "gender": gender, "screen_name": screen_name}
-                self.dbTweets.tweets_text_3.save(tweet_text)
+                self.dbTweets.tweets_text_4.save(tweet_text)
             else:
-                print "Filtered: " + text
+                with open('filtered_tweets.txt', 'a') as f:
+                    f.write(text.encode('utf-8') + '\n')
         else:
             self.dbTweets.retweets.save(tweet_with_gender)
 
@@ -132,7 +138,7 @@ if __name__ == '__main__':
     
     
     db = pymongo.MongoClient().twitts
-    tweets = db.othertwits.find()
+    tweets = db.othertwits.find()#.limit(5000)
     p.map(process, tweets)
 
 

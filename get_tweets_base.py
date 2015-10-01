@@ -4,6 +4,8 @@ from gender_by_name import *
 from gender_by_description import *
 from ttp import ttp
 from multiprocessing import Pool
+import HTMLParser
+
 
 class TweetsProcessor:
 
@@ -12,10 +14,10 @@ class TweetsProcessor:
         self.gender_slots = GenderSlots()
         self.db = pymongo.MongoClient().twitts
         self.dbTweets = pymongo.MongoClient().tweets
-        self.parser = ttp.Parser()
+        self.twitter_parser = ttp.Parser()
         self.uniques = set()
-        self.filter_regex = re.compile(r'.*(follow|siguen de vuelta en Twitter|una nueva foto en Facebook|He publicado|Acabo de publicar una foto).*', re.UNICODE)
-        
+        self.filter_regex = re.compile(r'.*(follow|siguen de vuelta en Twitter|una nueva foto en Facebook|He publicado|Acabo de publicar una foto|m at).*', re.UNICODE)
+        self.html_parser = HTMLParser.HTMLParser()
 
     def get_gender(self, tweet_with_gender):
 
@@ -45,7 +47,7 @@ class TweetsProcessor:
 
     def is_text_valid(self, text):
 
-        first50 = text[:25]
+        first50 = text[:20]
         if first50 not in self.uniques:
             self.uniques.add(first50)
 
@@ -64,9 +66,15 @@ class TweetsProcessor:
         text = tweet_with_gender['text']
         gender = tweet_with_gender['screen_name_gender']
         screen_name = tweet_with_gender['screen_name']
+        
+        #Filter retweets
         if(not text.startswith("RT")):
             
-            result = self.parser.parse(text)
+            #Unescape html entities
+            text = self.html_parser.unescape(text)
+
+            #Parse and replace @users, #hastags and urls
+            result = self.twitter_parser.parse(text)
             for user in result.users:
                 text = text.replace(user, "user")
             for tag in result.tags:
@@ -74,9 +82,10 @@ class TweetsProcessor:
             for url in result.urls:
                 text = text.replace(url, "[url]")       
 
+            #Check valid text: duplicated, spam, etc
             if self.is_text_valid(text):
                 tweet_text = {"_id": id, "text": text, "gender": gender, "screen_name": screen_name}
-                self.dbTweets.tweets_text_4.save(tweet_text)
+                self.dbTweets.tweets_text_6.save(tweet_text)
             else:
                 with open('filtered_tweets.txt', 'a') as f:
                     f.write(text.encode('utf-8') + '\n')

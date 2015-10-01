@@ -63,7 +63,7 @@ class GenderDetectionText:
 		counter.update(self.fourgrams)
 		counter.update(self.fivegrams)
 		counter.update(self.sixgrams)
-		self.word_features = [k for k, v in counter.most_common(2000)]
+		self.word_features = [k for k, v in counter.most_common(8000)]
 		#self.word_features = [k for k, v in counter.iteritems() if v > 4]
 		
 		with open('features.txt', 'w') as f:

@@ -137,6 +137,50 @@ class GenderDetectionText:
 			return word
 		return unidecode.unidecode(word)
 
+	def show_most_informative_features(self, classifier, n=10):
+
+		# Determine the most relevant features, and display them.
+		cpdist = classifier._feature_probdist
+		print('Most Informative Features')
+
+		features = []
+
+		for (fname, fval) in classifier.most_informative_features(n):
+			def labelprob(l):
+				return cpdist[l, fname].prob(fval)
+
+			labels = sorted([l for l in classifier._labels
+							 if fval in cpdist[l, fname].samples()],
+							key=labelprob)
+			if len(labels) == 1:
+				continue
+			l0 = labels[0]
+			l1 = labels[-1]
+			if cpdist[l0, fname].prob(fval) == 0:
+				ratio = 'INF'
+				size = 0
+			else:
+				ratio = '%8.1f' % (cpdist[l1, fname].prob(fval) /
+								   cpdist[l0, fname].prob(fval))
+				size = round(cpdist[l1, fname].prob(fval) /
+								   cpdist[l0, fname].prob(fval), 2)
+			print(('%24s = %-14r %6s : %-6s = %s : 1.0' %
+				   (fname, fval, ("%s" % l1)[:6], ("%s" % l0)[:6], ratio)))
+
+			data = {}
+
+			reg = re.compile(ur'(contains\()(.*)(\))')
+			g = reg.match(fname)
+
+
+			data['text'] = g.group(2).replace('_', ' ')
+			data['gender'] = l1
+			data['size'] = size
+			features.append(data)
+
+		with open('most_informative_features.json', 'w') as f:
+			json.dump(features, f)
+
 
 	def start(self):
 		
@@ -162,7 +206,7 @@ class GenderDetectionText:
 
 		print "test performance: " + str(nltk.classify.accuracy(classifier, test_set))
 
-		classifier.show_most_informative_features(100)
+		self.show_most_informative_features(classifier, 100)
 
 		female_test = [f for (f, c) in test_set if c == 'Female']
 		male_test = [f for (f, c) in test_set if c == 'Male']

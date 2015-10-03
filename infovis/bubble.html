@@ -16,12 +16,14 @@ text {
 
 </style>
 <body>
+<button type="button" onclick="renderWomen()" >Click Me!</button>
+</body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
-var diameter = 1060,
+var diameter = 760,
     format = d3.format(",d"),
-    color = d3.scale.category20c();
+    fullJson;
 
 var bubble = d3.layout.pack()
     .sort(null)
@@ -36,30 +38,15 @@ var svg = d3.select("body").append("svg")
 d3.json("../most_informative_features.json", function(error, json) {
   if (error) throw error;
 
-  root = {
+  fullJson = json;
+
+  var root = {
     text: "root",
     children: json
   }
-  console.log(root);
+  console.log(bubble.nodes(classes(root)));
 
-  var node = svg.selectAll(".node")
-      .data(bubble.nodes(classes(root))
-      .filter(function(d) { return !d.children; }))
-    .enter().append("g")
-      .attr("class", "node")
-      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-
-  node.append("title")
-      .text(function(d) { return d.className + ": " + format(d.value); });
-
-  node.append("circle")
-      .attr("r", function(d) { return d.r; })
-      .attr("class", function(d) { return d.packageName; });
-
-  node.append("text")
-      .attr("dy", ".3em")
-      .style("text-anchor", "middle")
-      .text(function(d) { return d.className.substring(0, d.r / 3); });
+  update(root);
 });
 
 // Returns a flattened hierarchy containing all leaf nodes under the root.
@@ -73,6 +60,51 @@ function classes(root) {
 
   recurse(null, root);
   return {children: classes};
+}
+
+function update(root){
+
+  var node = svg.selectAll(".node")
+      .data(bubble.nodes(classes(root))
+      .filter(function(d) { return !d.children; }))
+    .enter().append("g")
+      .attr("class", function(d) { return "node" + d.packageName})
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+  node.append("title")
+      .text(function(d) { return d.className + ": " + format(d.value); });
+
+  node.append("circle")
+      .attr("r", function(d) { return d.r; })
+      .attr("class", function(d) { return d.packageName; });
+
+  node.append("text")
+      .attr("dy", ".3em")
+      .style("text-anchor", "middle")
+      .text(function(d) { return d.className.substring(0, d.r / 3); });
+
+}
+
+function renderWomen() {
+
+  var i;
+  var females = [];
+  for(i=0; i<fullJson.length; i++){
+    if(fullJson[i].gender == 'Female'){
+      females.push(fullJson[i]);
+    }
+  }
+
+  var root = {
+    text: "root",
+    children: females
+  }
+  console.log(bubble.nodes(classes(root)));
+
+  update(root);
+
+
+
 }
 
 d3.select(self.frameElement).style("height", diameter + "px");

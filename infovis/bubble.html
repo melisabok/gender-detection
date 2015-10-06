@@ -17,31 +17,31 @@ text {
 </style>
 <body>
 <button type="button" onclick="renderAll()" >All</button>
-<button type="button" onclick="renderWomen()" >Females</button>
-<button type="button" onclick="renderMen()" >Males</button>
+<button type="button" onclick="renderWomen()" >By Gender</button>
 </body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
-var diameter = 760,
+var diameter = 600,
     format = d3.format(",d"),
     all_nodes,
     female_nodes,
-    male_nodes;
+    male_nodes,
+    split_nodes = [];
+
+var bubble_all = d3.layout.pack()
+    .sort(null)
+    .size([700, 700])
+    .padding(1.5);
 
 var bubble = d3.layout.pack()
     .sort(null)
     .size([diameter, diameter])
     .padding(1.5);
 
-var bubble2 = d3.layout.pack()
-    .sort(null)
-    .size([diameter, diameter])
-    .padding(1.5);
-
 var svg = d3.select("body").append("svg")
-    .attr("width", diameter)
-    .attr("height", diameter)
+    .attr("width", 1240)
+    .attr("height", 760)
     .attr("class", "bubble");
 
 d3.json("../most_informative_features.json", function(error, json) {
@@ -73,11 +73,21 @@ d3.json("../most_informative_features.json", function(error, json) {
     children: males
   }
 
-  all_nodes = bubble.nodes(classes(all_nodes));
+  all_nodes = bubble_all.nodes(classes(all_nodes));
   female_nodes = bubble.nodes(classes(female_nodes));
   male_nodes = bubble.nodes(classes(male_nodes));
-  
-  update(all_nodes);
+
+  //Remove root
+  all_nodes.splice(0,1);
+  female_nodes.splice(0, 1);
+  male_nodes.splice(0, 1);
+
+  split_nodes = female_nodes.slice();
+  for(i=0; i < male_nodes.length; i++) {
+    split_nodes.push(male_nodes[i]);
+  }
+
+  update(all_nodes, 'all');
 });
 
 // Returns a flattened hierarchy containing all leaf nodes under the root.
@@ -93,16 +103,26 @@ function classes(root) {
   return {children: classes};
 }
 
-function update(nodes){
+function update(nodes, mode){
 
   var node = svg.selectAll(".node")
-      .data(nodes
-      .filter(function(d) { return !d.children; }), function(d) { return d.className; });
+      .data(nodes, function(d) { return d.className; });
 
   //UPDATE
   node.transition()
       .duration(750)
-      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+      .attr("transform", function(d) { 
+        console.log(d.packageName); 
+        if(mode == 'all'){
+          return "translate(" + (d.x + 262) + "," + d.y + ")";
+        } else {
+          if(d.packageName == 'Female') {
+            return "translate(" + (d.x + 12) + "," + d.y + ")"; 
+          }
+          return "translate(" + (d.x + 612) + "," + d.y + ")";          
+        }
+ 
+      });
   
   node.select('circle')
     .transition()
@@ -112,7 +132,7 @@ function update(nodes){
   //INSERT  
   var news = node.enter().append("g")
       .attr("class", function(d) { return "node"; })
-      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+      .attr("transform", function(d) { return "translate(" + (d.x + 262) + "," + d.y + ")"; });
 
   news.append("title")
       .text(function(d) { return d.className + ": " + d.value; });
@@ -135,19 +155,13 @@ function update(nodes){
 
 function renderWomen() {
 
- update(female_nodes);
-
-}
-
-function renderMen() {
-
- update(male_nodes);
+ update(split_nodes, 'split');
 
 }
 
 function renderAll() {
 
- update(all_nodes);
+ update(all_nodes, 'all');
 
 
 

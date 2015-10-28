@@ -3,155 +3,155 @@
 <style>
 
 text {
-  font: 12px arial;
+	font: 10px arial;
 }
 
 .Female {
-  fill: #fc8d59;
+	fill: #fc8d59;
 }
 
 .Male {
-  fill: #91bfdb;
+	fill: #91bfdb;
 }
 
 </style>
 <body>
-  <div align='center'>
-  <button type="button" onclick="renderAll()" style="font-size:15px">All</button>
-  <button type="button" onclick="renderByGender()" style="font-size:15px">By Gender</button>
-  </div>
+	<div align='center'>
+	<button type="button" onclick="renderAll()" style="font-size:15px">All</button>
+	<button type="button" onclick="renderByGender()" style="font-size:15px">By Gender</button>
+	</div>
 </body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
-var diameter = 600,
-    format = d3.format(",d"),
-    all_nodes,
-    female_nodes,
-    male_nodes,
-    split_nodes = [];
+var diameter = 485,
+		format = d3.format(",d"),
+		all_nodes,
+		female_nodes,
+		male_nodes,
+		split_nodes = [];
 
 var bubble_all = d3.layout.pack()
-    .sort(null)
-    .size([700, 700])
-    .padding(1.5);
+		.sort(null)
+		.size([485, 485])
+		.padding(1.5);
 
 var bubble = d3.layout.pack()
-    .sort(null)
-    .size([diameter, diameter])
-    .padding(1.5);
+		.sort(null)
+		.size([diameter, diameter])
+		.padding(1.5);
 
 var svg = d3.select("body").append("svg")
-    .attr("width", 1240)
-    .attr("height", 760)
-    .attr("class", "bubble");
+		.attr("width", 970)
+		.attr("height", 787)
+		.attr("class", "bubble");
 
 d3.json("../most_informative_features.json", function(error, json) {
-  if (error) throw error;
+	if (error) throw error;
 
-  var females = [],
-      males = [];
+	var females = [],
+			males = [];
 
-  for(i=0; i<json.length; i++){
-    if(json[i].gender == 'Female'){
-      females.push(json[i]);
-    } else {
-      males.push(json[i]);
-    }
-  }
+	for(i=0; i<json.length; i++){
+		if(json[i].gender == 'Female'){
+			females.push(json[i]);
+		} else {
+			males.push(json[i]);
+		}
+	}
 
-  all_nodes = {
-    text: "root",
-    children: json
-  }
+	all_nodes = {
+		text: "root",
+		children: json
+	}
 
-  female_nodes = {
-    text: "root",
-    children: females
-  }
+	female_nodes = {
+		text: "root",
+		children: females
+	}
 
-  male_nodes = {
-    text: "root",
-    children: males
-  }
+	male_nodes = {
+		text: "root",
+		children: males
+	}
 
-  all_nodes = bubble_all.nodes(classes(all_nodes));
-  female_nodes = bubble.nodes(classes(female_nodes));
-  male_nodes = bubble.nodes(classes(male_nodes));
+	all_nodes = bubble_all.nodes(classes(all_nodes));
+	female_nodes = bubble.nodes(classes(female_nodes));
+	male_nodes = bubble.nodes(classes(male_nodes));
 
-  //Remove root
-  all_nodes.splice(0,1);
-  female_nodes.splice(0, 1);
-  male_nodes.splice(0, 1);
+	//Remove root
+	all_nodes.splice(0,1);
+	female_nodes.splice(0, 1);
+	male_nodes.splice(0, 1);
 
-  split_nodes = female_nodes.slice();
-  for(i=0; i < male_nodes.length; i++) {
-    split_nodes.push(male_nodes[i]);
-  }
+	split_nodes = female_nodes.slice();
+	for(i=0; i < male_nodes.length; i++) {
+		split_nodes.push(male_nodes[i]);
+	}
 
-  update(all_nodes, 'all');
+	update(all_nodes, 'all');
 });
 
 // Returns a flattened hierarchy containing all leaf nodes under the root.
 function classes(root) {
-  var classes = [];
+	var classes = [];
 
-  function recurse(name, node) {
-    if (node.children) node.children.forEach(function(child) { recurse(node.text, child); });
-    else classes.push({packageName: node.gender, className: node.text, value: node.size});
-  }
+	function recurse(name, node) {
+		if (node.children) node.children.forEach(function(child) { recurse(node.text, child); });
+		else classes.push({packageName: node.gender, className: node.text, value: node.size});
+	}
 
-  recurse(null, root);
-  return {children: classes};
+	recurse(null, root);
+	return {children: classes};
 }
 
 function update(nodes, mode){
 
-  var node = svg.selectAll(".node")
-      .data(nodes, function(d) { return d.className; });
+	var node = svg.selectAll(".node")
+			.data(nodes, function(d) { return d.className; });
 
-  //UPDATE
-  node.transition()
-      .duration(750)
-      .attr("transform", function(d) { 
-        console.log(d.packageName); 
-        if(mode == 'all'){
-          return "translate(" + (d.x + 262) + "," + d.y + ")";
-        } else {
-          if(d.packageName == 'Female') {
-            return "translate(" + (d.x + 12) + "," + d.y + ")"; 
-          }
-          return "translate(" + (d.x + 612) + "," + d.y + ")";          
-        }
+	//UPDATE
+	node.transition()
+			.duration(750)
+			.attr("transform", function(d) { 
+				console.log(d.packageName); 
+				if(mode == 'all'){
+					return "translate(" + (d.x + 243) + "," + d.y + ")";
+				} else {
+					if(d.packageName == 'Female') {
+						return "translate(" + (d.x + 1) + "," + d.y + ")"; 
+					}
+					return "translate(" + (d.x + 485) + "," + d.y + ")";          
+				}
  
-      });
-  
-  node.select('circle')
-    .transition()
-    .duration(750)
-    .attr("r", function(d) { return d.r; })
-  
-  //INSERT  
-  var news = node.enter().append("g")
-      .attr("class", function(d) { return "node"; })
-      .attr("transform", function(d) { return "translate(" + (d.x + 262) + "," + d.y + ")"; });
+			});
+	
+	node.select('circle')
+		.transition()
+		.duration(750)
+		.attr("r", function(d) { return d.r; })
+	
+	//INSERT  
+	var news = node.enter().append("g")
+			.attr("class", function(d) { return "node"; })
+			.attr("transform", function(d) { return "translate(" + (d.x + 243) + "," + d.y + ")"; });
 
-  news.append("title")
-      .text(function(d) { return d.className + ": " + d.value; });
+	news.append("title")
+			.text(function(d) { return d.className + ": " + d.value; });
 
-  news.append("circle")
-      .attr("r", function(d) { return d.r; })
-      .attr("class", function(d) { return d.packageName; });
+	news.append("circle")
+			.attr("r", function(d) { return d.r; })
+			.attr("class", function(d) { return d.packageName; });
 
-  news.append("text")
-      .attr("dy", ".3em")
-      .style("text-anchor", "middle")
-      .text(function(d) { return d.className.substring(0, d.r / 3); });
+	news.append("text")
+			.attr("dy", ".3em")
+			.style("text-anchor", "middle")
+			.text(function(d) { return d.className.substring(0, d.r / 3); });
 
 
 
-  //REMOVE
-  node.exit().remove();
+	//REMOVE
+	node.exit().remove();
 
 }
 
